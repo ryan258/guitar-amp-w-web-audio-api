@@ -1,0 +1,30 @@
+body {
+  background-color: #dbdbdb;
+}
+
+canvas {
+  /* make canvas take up the whole space */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  /* don't interact with the canvas */
+  pointer-events: none;
+  /* background-color: #0f0; */
+}
+
+input {
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: auto min-content;
+  justify-content: center;
+  justify-items: end;
+  /* align things vertically */
+  align-items: center;
+  gap: 5px 10px;
+}
