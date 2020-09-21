@@ -9,11 +9,63 @@ const visualizer = document.getElementById("visualizer");
 const context = new AudioContext();
 // fftSize = how many different frequencies you want to control
 const analyserNode = new AnalyserNode(context, { fftSize: 256 });
+// Change the volume
+const gainNode = new GainNode(context, { gain: volume.value });
+// Change the bass
+const bassEQ = new BiquadFilterNode(context, {
+  type: "lowshelf",
+  frequency: 500,
+  gain: bass.value,
+});
+// Change mids
+const midEQ = new BiquadFilterNode(context, {
+  type: "peaking",
+  Q: Math.SQRT1_2,
+  frequency: 1500,
+  gain: mid.value,
+});
+// Change treble
+const trebleEQ = new BiquadFilterNode(context, {
+  type: "highshelf",
+  Q: Math.SQRT1_2,
+  frequency: 3000,
+  gain: treble.value,
+});
 
+setupEventListeners();
 // connect audio source/input with our AudioContext
 setupContext();
 resize();
 drawVisualizer();
+
+// set up an event handler for resizing the screen
+function setupEventListeners() {
+  window.addEventListener("resize", resize);
+
+  volume.addEventListener("input", (e) => {
+    const value = parseFloat(e.target.value);
+    // Remove clicking sounds
+    gainNode.gain.setTargetAtTime(value, context.currentTime, 0.01);
+  });
+
+  bass.addEventListener("input", (e) => {
+    const value = parseInt(e.target.value);
+    // Remove clicking sounds
+    bassEQ.gain.setTargetAtTime(value, context.currentTime, 0.01);
+  });
+
+  mid.addEventListener("input", (e) => {
+    const value = parseInt(e.target.value);
+    // Remove clicking sounds
+    midEQ.gain.setTargetAtTime(value, context.currentTime, 0.01);
+  });
+
+  treble.addEventListener("input", (e) => {
+    const value = parseInt(e.target.value);
+    // Remove clicking sounds
+    trebleEQ.gain.setTargetAtTime(value, context.currentTime, 0.01);
+  });
+}
 
 // where we integrate our guitar
 async function setupContext() {
@@ -23,7 +75,13 @@ async function setupContext() {
   }
   const source = context.createMediaStreamSource(guitar);
   // connect source with it's destination
-  source.connect(analyserNode).connect(context.destination);
+  source
+    .connect(bassEQ)
+    .connect(midEQ)
+    .connect(trebleEQ)
+    .connect(gainNode)
+    .connect(analyserNode)
+    .connect(context.destination);
 }
 
 // get our audio source (setting to purest form to avoid browsers trying to clean up sound for us)
